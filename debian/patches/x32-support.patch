@@ -1,0 +1,145 @@
+--- a/src/acpica/source/include/platform/aclinux.h
++++ b/src/acpica/source/include/platform/aclinux.h
+@@ -266,7 +266,7 @@
+ #define ACPI_FLUSH_CPU_CACHE()
+ #define ACPI_CAST_PTHREAD_T(Pthread) ((ACPI_THREAD_ID) (Pthread))
+ 
+-#if defined(__ia64__)    || defined(__x86_64__) ||\
++#if defined(__ia64__)    || (defined(__x86_64__) && !defined(__ILP32__)) || \
+     defined(__aarch64__) || defined(__PPC64__) ||\
+     defined(__s390x__)
+ #define ACPI_MACHINE_WIDTH          64
+--- a/src/bios/ebda_region/ebda_region.c
++++ b/src/bios/ebda_region/ebda_region.c
+@@ -83,7 +83,11 @@ static int ebda_test1(fwts_framework *fw
+ 	if ((entry != NULL) &&
+ 	    (entry->type == FWTS_MEMORY_MAP_RESERVED ||
+ 	     entry->type == FWTS_MEMORY_MAP_ACPI)) {
++#ifdef __ILP32__
++		fwts_passed(fw, "EBDA region mapped at 0x%llx and reserved as a %" PRId64
++#else
+ 		fwts_passed(fw, "EBDA region mapped at 0x%lx and reserved as a %" PRId64
++#endif
+ 			"K region in the %s table at 0x%" PRIx64 "..0x%" PRIx64 ".",
+ 			ebda_addr,
+ 			(entry->end_address - entry->start_address) / 1024,
+@@ -93,7 +97,11 @@ static int ebda_test1(fwts_framework *fw
+ 	} else
+ 		fwts_failed(fw, LOG_LEVEL_MEDIUM,
+ 			"EBDAMappedNotReserved",
++#ifdef __ILP32__
++			"EBDA region mapped at 0x%llx but not reserved in the %s table.",
++#else
+ 			"EBDA region mapped at 0x%lx but not reserved in the %s table.",
++#endif
+ 			ebda_addr, memory_map_name);
+ 		
+ 	return FWTS_OK;
+--- a/src/lib/include/fwts_mmap.h
++++ b/src/lib/include/fwts_mmap.h
+@@ -24,7 +24,7 @@
+ #include <sys/mman.h>
+ 
+ size_t fwts_page_size(void);
+-void *fwts_mmap(const off_t start, const size_t size);
++void *fwts_mmap(const size_t start, const size_t size);
+ int fwts_munmap(void *mem, const size_t size);
+ 
+ #endif
+--- a/src/lib/src/fwts_acpi_tables.c
++++ b/src/lib/src/fwts_acpi_tables.c
+@@ -149,7 +149,7 @@ static fwts_acpi_table_rsdp *fwts_acpi_g
+ 	fwts_acpi_table_rsdp *rsdp = NULL;
+ 	*rsdp_len = 0;
+ 
+-	if ((mem = fwts_mmap((off_t)addr, sizeof(fwts_acpi_table_rsdp))) == FWTS_MAP_FAILED)
++	if ((mem = fwts_mmap((size_t)addr, sizeof(fwts_acpi_table_rsdp))) == FWTS_MAP_FAILED)
+ 		return NULL;
+ 
+ 	if (fwts_safe_memread(mem, sizeof(fwts_acpi_table_rsdp)) != FWTS_OK) {
+@@ -450,17 +450,17 @@ static int fwts_acpi_load_tables_from_fi
+ 	if ((rsdp = fwts_acpi_get_rsdp(fw, rsdp_addr, &rsdp_len)) == NULL)
+ 		return FWTS_ERROR;
+ 
+-	fwts_acpi_add_table("RSDP", rsdp, (uint64_t)(off_t)rsdp_addr, rsdp_len, FWTS_ACPI_TABLE_FROM_FIRMWARE);
++	fwts_acpi_add_table("RSDP", rsdp, (uint64_t)(size_t)rsdp_addr, rsdp_len, FWTS_ACPI_TABLE_FROM_FIRMWARE);
+ 
+ 	/* Load any tables from XSDT if it's valid */
+ 	if (rsdp->xsdt_address) {
+-		if ((xsdt = fwts_acpi_load_table((off_t)rsdp->xsdt_address)) != NULL) {
++		if ((xsdt = fwts_acpi_load_table((size_t)rsdp->xsdt_address)) != NULL) {
+ 			fwts_acpi_add_table("XSDT", xsdt, (uint64_t)rsdp->xsdt_address,
+ 				xsdt->header.length, FWTS_ACPI_TABLE_FROM_FIRMWARE);
+ 			num_entries = (xsdt->header.length - sizeof(fwts_acpi_table_header)) / 8;
+ 			for (i=0; i<num_entries; i++) {
+ 				if (xsdt->entries[i]) {
+-					if ((header = fwts_acpi_load_table((off_t)xsdt->entries[i])) != NULL) {
++					if ((header = fwts_acpi_load_table((size_t)xsdt->entries[i])) != NULL) {
+ 						if (strncmp("FACP", header->signature, 4) == 0)
+ 							if (fwts_acpi_handle_fadt(fw,
+ 							    (uint64_t)xsdt->entries[i],
+@@ -477,13 +477,13 @@ static int fwts_acpi_load_tables_from_fi
+ 
+ 	/* Load any tables from RSDT if it's valid */
+ 	if (rsdp->rsdt_address) {
+-		if ((rsdt = fwts_acpi_load_table((off_t)rsdp->rsdt_address)) != NULL) {
++		if ((rsdt = fwts_acpi_load_table((size_t)rsdp->rsdt_address)) != NULL) {
+ 			fwts_acpi_add_table("RSDT", rsdt, (uint64_t)rsdp->rsdt_address,
+ 				rsdt->header.length, FWTS_ACPI_TABLE_FROM_FIRMWARE);
+ 			num_entries = (rsdt->header.length - sizeof(fwts_acpi_table_header)) / 4;
+ 			for (i=0; i<num_entries; i++) {
+ 				if (rsdt->entries[i]) {
+-					if ((header = fwts_acpi_load_table((off_t)rsdt->entries[i])) != NULL) {
++					if ((header = fwts_acpi_load_table((size_t)rsdt->entries[i])) != NULL) {
+ 						if (strncmp("FACP", header->signature, 4) == 0)
+ 							if (fwts_acpi_handle_fadt(fw,
+ 							    (uint64_t)rsdt->entries[i],
+--- a/src/lib/src/fwts_mmap.c
++++ b/src/lib/src/fwts_mmap.c
+@@ -47,11 +47,11 @@ size_t fwts_page_size(void)
+  *	Try and map physical memory from offset address 'start' and length
+  *	'size'. Return either the address or FWTS_MAP_FAILED if failed to mmap.
+  */
+-void *fwts_mmap(const off_t start, const size_t size)
++void *fwts_mmap(const size_t start, const size_t size)
+ {
+ 	int fd;
+ 	int page_size;
+-	off_t offset;
++	size_t offset;
+ 	size_t length;
+ 	void *mem;
+ 	void *ret = FWTS_MAP_FAILED;
+@@ -78,10 +78,10 @@ void *fwts_mmap(const off_t start, const
+ int fwts_munmap(void *mem, const size_t size)
+ {
+ 	int page_size;
+-	off_t offset;
++	size_t offset;
+ 
+ 	page_size = fwts_page_size();
+-	offset = ((off_t)(mem)) & (page_size - 1);
++	offset = ((size_t)(mem)) & (page_size - 1);
+ 
+ 	if (munmap((void *)((uint8_t *)mem - offset), size + offset) < 0)
+ 		return FWTS_ERROR;
+--- a/src/lib/src/fwts_smbios.c
++++ b/src/lib/src/fwts_smbios.c
+@@ -54,7 +54,7 @@ static void *fwts_smbios_find_entry_uefi
+ 	if ((addr = fwts_scan_efi_systab("SMBIOS")) != NULL) {
+ 		fwts_smbios_entry *mapped_entry;
+ 
+-		if ((mapped_entry = fwts_mmap((off_t)addr, sizeof(fwts_smbios_entry))) != FWTS_MAP_FAILED) {
++		if ((mapped_entry = fwts_mmap((size_t)addr, sizeof(fwts_smbios_entry))) != FWTS_MAP_FAILED) {
+ 			*entry = *mapped_entry;
+ 			(void)fwts_munmap(mapped_entry, sizeof(fwts_smbios_entry));
+ 			*type  = FWTS_SMBIOS;
+@@ -84,7 +84,7 @@ static void *fwts_smbios30_find_entry_ue
+ 	if ((addr = fwts_scan_efi_systab("SMBIOS3")) != NULL) {
+ 		fwts_smbios30_entry *mapped_entry;
+ 
+-		if ((mapped_entry = fwts_mmap((off_t)addr, sizeof(fwts_smbios30_entry))) != FWTS_MAP_FAILED) {
++		if ((mapped_entry = fwts_mmap((size_t)addr, sizeof(fwts_smbios30_entry))) != FWTS_MAP_FAILED) {
+ 			*entry = *mapped_entry;
+ 			(void)fwts_munmap(mapped_entry, sizeof(fwts_smbios30_entry));
+ 			return addr;

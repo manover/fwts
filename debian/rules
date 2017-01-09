@@ -1,15 +1,28 @@
 #!/usr/bin/make -f
 
-export DEB_BUILD_MAINT_OPTIONS=hardening=+all
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
-DEB_BUILD_ARCH := $(shell dpkg-architecture -qDEB_BUILD_ARCH)
+include /usr/share/dpkg/architecture.mk
 
-DEBVERS := $(shell dpkg-parsechangelog | grep ^Version: | cut -d' ' -f2 \
-		| cut -d- -f1)
-
-VERSION := $(shell echo '$(DEBVERS)' | sed -e 's/[+-].*//' -e 's/~//g')
-
+VERSION := $(shell dpkg-parsechangelog -SVersion | cut -d':' -f2 | cut -d- -f1)
 DKMS_SRC_DIR := $(CURDIR)/debian/fwts-efi-runtime-dkms/usr/src/fwts-efi-runtime-dkms-$(VERSION)
+
+export DEB_LDFLAGS_MAINT_APPEND += -Wl,--as-needed
+
+%:
+ifeq ($(DEB_HOST_ARCH),amd64)
+	dh $@ --with autoreconf,dkms
+else
+	dh $@ --with autoreconf
+endif
+
+override_dh_autoreconf:
+	dh_autoreconf --as-needed
+
+override_dh_clean:
+	dh_clean \
+		results.log config.log \
+		src/acpica/source/compiler/aslcompiler.y
 
 override_dh_auto_install:
 	install -d $(DKMS_SRC_DIR)
@@ -23,6 +36,3 @@ override_dh_auto_test:
 ifneq ($(DEB_BUILD_ARCH),arm64)
 	dh_auto_test $@
 endif
-
-%:
-	dh $@ --with autoreconf,dkms
