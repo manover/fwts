@@ -1,0 +1,44 @@
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -152,7 +152,7 @@ fwts_SOURCES = main.c 				\
+	uefi/esrt/esrt.c			\
+	$(dt_tests)
+
+-fwts_LDFLAGS = -lm `pkg-config --libs glib-2.0 gio-2.0`
++fwts_LDFLAGS = -Wl,--as-needed -lm `pkg-config --libs glib-2.0 gio-2.0`
+
+ fwts_LDADD = \
+	-L$(top_builddir)/src/acpica -lfwtsacpica \
+--- a/src/acpica/Makefile.am
++++ b/src/acpica/Makefile.am
+@@ -57,7 +57,7 @@ CLEANFILES = osunixxf_munged.c				\
+
+ pkglib_LTLIBRARIES = libfwtsacpica.la
+
+-libfwtsacpica_la_LDFLAGS = -lpthread -version-info 1:0:0
++libfwtsacpica_la_LDFLAGS = -Wl,--as-needed -lpthread -version-info 1:0:0
+ libfwtsacpica_la_CPPFLAGS = $(AM_CPPFLAGS)
+
+ #
+--- a/src/acpica/source/compiler/Makefile.am
++++ b/src/acpica/source/compiler/Makefile.am
+@@ -52,7 +52,7 @@ BUILT_SOURCES = aslcompiler.c 			\
+ #
+ # Just export fwts specific API so we don't clash with core ACPICA library
+ #
+-libfwtsiasl_la_LDFLAGS = -export-symbols-regex "fwts_.*" -lpthread -version-info 1:0:0
++libfwtsiasl_la_LDFLAGS = -Wl,--as-needed -export-symbols-regex "fwts_.*" -lpthread -version-info 1:0:0
+
+ CLEANFILES = y.output y.tab.c y.tab.h aslcompiler.y.h $(BUILT_SOURCES)
+
+--- a/src/lib/src/Makefile.am
++++ b/src/lib/src/Makefile.am
+@@ -11,7 +11,7 @@ AM_CPPFLAGS = \
+ pkglib_LTLIBRARIES = libfwts.la
+
+ libfwts_la_LDFLAGS = 			\
+-	-lm -lpthread 			\
++	-Wl,--as-needed -lm -lpthread \
+	-version-info 1:0:0 		\
+	-L$(top_builddir)/src/acpica/source/compiler \
+	-lfwtsiasl `pkg-config --libs glib-2.0 gio-2.0`
