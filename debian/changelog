@@ -1,3 +1,9 @@
+fwts (17.02.00-1) unstable; urgency=medium
+
+  * New upstream release
+
+ -- Denis Bychkov <manover@gmail.com>  Fri, 17 Feb 2017 01:03:55 -0500
+
 fwts (17.02.00-0ubuntu1) zesty; urgency=low
 
   [Alex Hung]
@@ -56,6 +62,12 @@ fwts (17.02.00-0ubuntu1) zesty; urgency=low
 
  -- Alex Hung <alex.hung@ubuntu.com>  Thu, 16 Feb 2017 09:58:33 +0800
 
+fwts (17.01.00-1) unstable; urgency=medium
+
+  * New upstream release
+
+ -- Denis Bychkov <manover@gmail.com>  Sun, 22 Jan 2017 01:04:30 -0500
+
 fwts (17.01.00-0ubuntu1) zesty; urgency=low
 
   [Colin Ian King]
@@ -72,6 +84,18 @@ fwts (17.01.00-0ubuntu1) zesty; urgency=low
   * .gitignore: Add aslcompiler.y
 
  -- Alex Hung <alex.hung@ubuntu.com>  Thu, 19 Jan 2017 12:19:10 +0800
+
+fwts (16.12.22-1) unstable; urgency=medium
+
+  * New upstream snapshot
+
+ -- Denis Bychkov <manover@gmail.com>  Mon, 09 Jan 2017 05:02:12 -0500
+
+fwts (16.12.00-1) unstable; urgency=medium
+
+  * New upstream version
+
+ -- Denis Bychkov <manover@gmail.com>  Wed, 21 Dec 2016 02:24:44 -0500
 
 fwts (16.12.00-0ubuntu1) zesty; urgency=low
 
@@ -97,6 +121,20 @@ fwts (16.12.00-0ubuntu1) zesty; urgency=low
   * securebootcert: add variable DeployedMode checking
 
  -- Ivan Hu <ivan.hu@ubuntu.com>  Wed, 21 Dec 2016 09:26:40 +0800
+
+fwts (16.11.00-2) unstable; urgency=medium
+
+  * Support x32 arch
+  * Recommend fwts-efi-runtime-dkms package, don't depend on it
+  * Make fwts-efi-runtime-dkms MA: foreign
+
+ -- Denis Bychkov <manover@gmail.com>  Fri, 16 Dec 2016 23:55:39 -0500
+
+fwts (16.11.00-1) unstable; urgency=medium
+
+  * Debian release
+
+ -- Denis Bychkov <manover@gmail.com>  Fri, 16 Dec 2016 17:09:23 -0500
 
 fwts (16.11.00-0ubuntu1) zesty; urgency=low
 
