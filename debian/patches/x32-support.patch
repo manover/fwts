@@ -1,6 +1,6 @@
 --- a/src/acpica/source/include/platform/aclinux.h
 +++ b/src/acpica/source/include/platform/aclinux.h
-@@ -266,7 +266,7 @@
+@@ -273,7 +273,7 @@
  #define ACPI_FLUSH_CPU_CACHE()
  #define ACPI_CAST_PTHREAD_T(Pthread) ((ACPI_THREAD_ID) (Pthread))
  
@@ -71,7 +71,7 @@
  			fwts_acpi_add_table("XSDT", xsdt, (uint64_t)rsdp->xsdt_address,
  				xsdt->header.length, FWTS_ACPI_TABLE_FROM_FIRMWARE);
  			num_entries = (xsdt->header.length - sizeof(fwts_acpi_table_header)) / 8;
- 			for (i=0; i<num_entries; i++) {
+ 			for (i = 0; i < num_entries; i++) {
  				if (xsdt->entries[i]) {
 -					if ((header = fwts_acpi_load_table((off_t)xsdt->entries[i])) != NULL) {
 +					if ((header = fwts_acpi_load_table((size_t)xsdt->entries[i])) != NULL) {
@@ -87,7 +87,7 @@
  			fwts_acpi_add_table("RSDT", rsdt, (uint64_t)rsdp->rsdt_address,
  				rsdt->header.length, FWTS_ACPI_TABLE_FROM_FIRMWARE);
  			num_entries = (rsdt->header.length - sizeof(fwts_acpi_table_header)) / 4;
- 			for (i=0; i<num_entries; i++) {
+ 			for (i = 0; i < num_entries; i++) {
  				if (rsdt->entries[i]) {
 -					if ((header = fwts_acpi_load_table((off_t)rsdt->entries[i])) != NULL) {
 +					if ((header = fwts_acpi_load_table((size_t)rsdt->entries[i])) != NULL) {

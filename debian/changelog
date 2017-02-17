@@ -1,8 +1,9 @@
 fwts (17.02.00-1) unstable; urgency=medium
 
-  * New upstream release
+  * Rebase on the new upstream release
+  * Update and refresh the patch
 
- -- Denis Bychkov <manover@gmail.com>  Fri, 17 Feb 2017 01:03:55 -0500
+ -- Denis Bychkov <manover@gmail.com>  Fri, 17 Feb 2017 01:12:26 -0500
 
 fwts (17.02.00-0ubuntu1) zesty; urgency=low
 
